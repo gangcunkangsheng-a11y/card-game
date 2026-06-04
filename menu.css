@@ -1,0 +1,171 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #076324;
+    background-image: 
+        radial-gradient(circle at 50% 50%, transparent 30%, rgba(0,0,0,0.3) 70%),
+        repeating-conic-gradient(rgba(0,0,0,0.1) 0deg, transparent 1deg, transparent 9deg, rgba(0,0,0,0.1) 10deg);
+    background-size: cover, 200px 200px;
+    color: white;
+    font-family: 'Georgia', serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#menu-container {
+    text-align: center;
+    width: 100%;
+    max-width: 900px;
+    padding: 40px 20px;
+}
+
+#header h1 {
+    font-size: 3rem;
+    color: #FFD700;
+    text-shadow: 0 0 20px rgba(255,215,0,0.5);
+    margin-bottom: 10px;
+    letter-spacing: 3px;
+}
+
+#header p {
+    font-size: 1.2rem;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 50px;
+}
+
+#game-list {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.game-card {
+    background: rgba(0,0,0,0.4);
+    border: 2px solid #FFD700;
+    border-radius: 15px;
+    padding: 40px 30px;
+    width: 220px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.game-card:hover {
+    transform: translateY(-10px);
+    background: rgba(0,0,0,0.6);
+    box-shadow: 0 10px 30px rgba(255,215,0,0.3);
+}
+
+.game-card.coming-soon {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: rgba(255,215,0,0.3);
+}
+
+.game-card.coming-soon:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.game-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.game-card h2 {
+    font-size: 1.3rem;
+    color: #FFD700;
+    margin-bottom: 10px;
+}
+
+.game-card p {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.7);
+}
+
+/* モーダル */
+#mode-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#mode-modal.hidden {
+    display: none;
+}
+
+#modal-content {
+    background: #0a4a1a;
+    border: 2px solid #FFD700;
+    border-radius: 15px;
+    padding: 50px;
+    text-align: center;
+    width: 400px;
+}
+
+#modal-content h2 {
+    color: #FFD700;
+    font-size: 1.8rem;
+    margin-bottom: 30px;
+}
+
+#mode-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+#mode-buttons button {
+    background: rgba(255,215,0,0.1);
+    border: 2px solid #FFD700;
+    border-radius: 10px;
+    padding: 20px 25px;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    width: 140px;
+}
+
+#mode-buttons button:hover {
+    background: rgba(255,215,0,0.3);
+    transform: translateY(-5px);
+}
+
+#mode-buttons button span {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.6);
+}
+
+#back-btn {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 8px;
+    padding: 10px 30px;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+#back-btn:hover {
+    border-color: white;
+    color: white;
+}

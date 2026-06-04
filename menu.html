@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カジノゲーム</title>
+    <link rel="stylesheet" href="menu.css">
+</head>
+<body>
+    <div id="menu-container">
+        <div id="header">
+            <h1>🎰 カジノゲーム 🎰</h1>
+            <p>ゲームを選んでください</p>
+        </div>
+
+        <div id="game-list">
+            <div class="game-card" onclick="selectGame('blackjack')">
+                <div class="game-icon">🃏</div>
+                <h2>ブラックジャック</h2>
+                <p>ディーラーに勝て！21を目指せ</p>
+            </div>
+
+            <div class="game-card coming-soon">
+                <div class="game-icon">♠️</div>
+                <h2>ポーカー</h2>
+                <p>近日公開予定</p>
+            </div>
+
+            <div class="game-card coming-soon">
+                <div class="game-icon">🎲</div>
+                <h2>バカラ</h2>
+                <p>近日公開予定</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="mode-modal" class="hidden">
+        <div id="modal-content">
+            <h2 id="modal-title">モードを選択</h2>
+            <div id="mode-buttons">
+                <button onclick="startGame('solo')">
+                    👤 ソロプレイ
+                    <span>一人で遊ぶ</span>
+                </button>
+                <button onclick="startGame('multi')">
+                    👥 マルチプレイ
+                    <span>友達と遊ぶ</span>
+                </button>
+            </div>
+            <button id="back-btn" onclick="closeModal()">戻る</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedGame = '';
+
+        function selectGame(game) {
+            selectedGame = game;
+            document.getElementById('mode-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('mode-modal').classList.add('hidden');
+        }
+
+        function startGame(mode) {
+            if (selectedGame === 'blackjack') {
+                window.location.href = `index.html?mode=${mode}`;
+            }
+        }
+    </script>
+</body>
+</html>
