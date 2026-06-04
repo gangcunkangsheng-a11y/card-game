@@ -8,6 +8,11 @@
 </head>
 <body>
     <div id="game">
+        <div id="top-bar">
+            <button id="menu-btn" onclick="window.location.href='menu.html'">← メニューに戻る</button>
+            <span id="mode-label"></span>
+        </div>
+
         <h1>ブラックジャック</h1>
 
         <div id="dealer-area">
@@ -45,12 +50,19 @@
             appId: "1:1062461980171:web:654970486e48834ca0110e"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        const params = new URLSearchParams(window.location.search);
+        const mode = params.get('mode') || 'solo';
 
-        import('./script.js').then(module => {
-            module.init(db, ref, set, onValue);
-        });
+        document.getElementById('mode-label').textContent = 
+            mode === 'solo' ? '👤 ソロプレイ' : '👥 マルチプレイ';
+
+        if (mode === 'multi') {
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
+            import('./script.js').then(m => m.init(db, ref, set, onValue, mode));
+        } else {
+            import('./script.js').then(m => m.init(null, null, null, null, mode));
+        }
     </script>
 </body>
 </html>

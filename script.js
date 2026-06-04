@@ -4,9 +4,12 @@ const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'
 let deck = [];
 let playerHand = [];
 let dealerHand = [];
-let dbRef, dbSet, dbOnValue;
+let gameMode = 'solo';
+let dbRef, dbSet, dbOnValue, dbInstance;
 
-export function init(db, ref, set, onValue) {
+export function init(db, ref, set, onValue, mode) {
+    gameMode = mode;
+    dbInstance = db;
     dbRef = ref;
     dbSet = set;
     dbOnValue = onValue;
@@ -15,85 +18,111 @@ export function init(db, ref, set, onValue) {
     document.getElementById('hit-btn').addEventListener('click', hit);
     document.getElementById('stand-btn').addEventListener('click', stand);
 
-    // Firebaseからゲーム状態を監視
-    dbOnValue(dbRef(db, 'blackjack/gameState'), (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            playerHand = data.playerHand || [];
-            dealerHand = data.dealerHand || [];
-            deck = data.deck || [];
-            renderHands(data.hideDealer);
-            if (data.message) {
-                document.getElementById('message').textContent = data.message;
+    if (gameMode === 'multi') {
+        dbOnValue(dbRef(dbInstance, 'blackjack/gameState'), (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                playerHand = data.playerHand || [];
+                dealerHand = data.dealerHand || [];
+                deck = data.deck || [];
+                renderHands(data.hideDealer);
+                if (data.message) {
+                    document.getElementById('message').textContent = data.message;
+                }
+                if (data.gameOver) {
+                    document.getElementById('deal-btn').disabled = false;
+                    document.getElementById('hit-btn').disabled = true;
+                    document.getElementById('stand-btn').disabled = true;
+                } else if (data.gameStarted) {
+                    document.getElementById('deal-btn').disabled = true;
+                    document.getElementById('hit-btn').disabled = false;
+                    document.getElementById('stand-btn').disabled = false;
+                }
             }
-            if (data.gameOver) {
-                document.getElementById('deal-btn').disabled = false;
-                document.getElementById('hit-btn').disabled = true;
-                document.getElementById('stand-btn').disabled = true;
-            } else if (data.gameStarted) {
-                document.getElementById('deal-btn').disabled = true;
-                document.getElementById('hit-btn').disabled = false;
-                document.getElementById('stand-btn').disabled = false;
-            }
-        }
-    });
+        });
+    }
+}
 
-    function saveState(hideDealer, message = '', gameOver = false, gameStarted = true) {
-        dbSet(dbRef(db, 'blackjack/gameState'), {
+function saveState(hideDealer, message = '', gameOver = false, gameStarted = true) {
+    if (gameMode === 'multi') {
+        dbSet(dbRef(dbInstance, 'blackjack/gameState'), {
             playerHand, dealerHand, deck, hideDealer, message, gameOver, gameStarted
         });
     }
+}
 
-    function createDeck() {
-        deck = [];
-        for (let suit of suits) {
-            for (let value of values) {
-                deck.push({ suit, value });
-            }
-        }
-        shuffle(deck);
-    }
-
-    function shuffle(deck) {
-        for (let i = deck.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [deck[i], deck[j]] = [deck[j], deck[i]];
+function createDeck() {
+    deck = [];
+    for (let suit of suits) {
+        for (let value of values) {
+            deck.push({ suit, value });
         }
     }
+    shuffle(deck);
+}
 
-    function startGame() {
-        createDeck();
-        playerHand = [deck.pop(), deck.pop()];
-        dealerHand = [deck.pop(), deck.pop()];
-        document.getElementById('message').textContent = '';
+function shuffle(deck) {
+    for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+}
+
+function startGame() {
+    createDeck();
+    playerHand = [deck.pop(), deck.pop()];
+    dealerHand = [deck.pop(), deck.pop()];
+    document.getElementById('message').textContent = '';
+    document.getElementById('deal-btn').disabled = true;
+    document.getElementById('hit-btn').disabled = false;
+    document.getElementById('stand-btn').disabled = false;
+    renderHands(true);
+
+    if (gameMode === 'multi') {
         saveState(true, '', false, true);
     }
+}
 
-    function hit() {
-        playerHand.push(deck.pop());
-        if (getHandScore(playerHand) > 21) {
-            saveState(false, 'バスト！あなたの負けです😢', true, false);
-        } else {
-            saveState(true);
-        }
+function hit() {
+    playerHand.push(deck.pop());
+    renderHands(true);
+
+    if (getHandScore(playerHand) > 21) {
+        endGame('バスト！あなたの負けです😢');
+    } else if (gameMode === 'multi') {
+        saveState(true);
     }
+}
 
-    function stand() {
-        while (getHandScore(dealerHand) < 17) {
-            dealerHand.push(deck.pop());
-        }
-        const playerScore = getHandScore(playerHand);
-        const dealerScore = getHandScore(dealerHand);
-        let message = '';
-        if (dealerScore > 21) {
-            message = 'ディーラーがバスト！あなたの勝ちです🎉';
-        } else if (playerScore > dealerScore) {
-            message = 'あなたの勝ちです🎉';
-        } else if (playerScore < dealerScore) {
-            message = 'ディーラーの勝ちです😢';
-        } else {
-            message = '引き分けです🤝';
-        }
+function stand() {
+    while (getHandScore(dealerHand) < 17) {
+        dealerHand.push(deck.pop());
+    }
+    renderHands(false);
+
+    const playerScore = getHandScore(playerHand);
+    const dealerScore = getHandScore(dealerHand);
+    let message = '';
+
+    if (dealerScore > 21) {
+        message = 'ディーラーがバスト！あなたの勝ちです🎉';
+    } else if (playerScore > dealerScore) {
+        message = 'あなたの勝ちです🎉';
+    } else if (playerScore < dealerScore) {
+        message = 'ディーラーの勝ちです😢';
+    } else {
+        message = '引き分けです🤝';
+    }
+    endGame(message);
+}
+
+function endGame(message) {
+    document.getElementById('message').textContent = message;
+    document.getElementById('deal-btn').disabled = false;
+    document.getElementById('hit-btn').disabled = true;
+    document.getElementById('stand-btn').disabled = true;
+
+    if (gameMode === 'multi') {
         saveState(false, message, true, false);
     }
 }

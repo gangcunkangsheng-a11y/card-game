@@ -1,3 +1,30 @@
+#top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#menu-btn {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.5);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+#menu-btn:hover {
+    border-color: #FFD700;
+    color: #FFD700;
+}
+
+#mode-label {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.7);
+}
 * {
     margin: 0;
     padding: 0;
