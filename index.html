@@ -3,10 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>カードゲーム</title>
+    <title>ブラックジャック</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>カードゲーム</h1>
-    <p>ここにゲームが入ります</p>
+    <div id="game">
+        <h1>ブラックジャック</h1>
+
+        <div id="dealer-area">
+            <h2>ディーラー</h2>
+            <div id="dealer-cards"></div>
+            <p id="dealer-score"></p>
+        </div>
+
+        <div id="player-area">
+            <h2>あなた</h2>
+            <div id="player-cards"></div>
+            <p id="player-score"></p>
+        </div>
+
+        <div id="controls">
+            <button id="deal-btn">ゲームスタート</button>
+            <button id="hit-btn" disabled>ヒット</button>
+            <button id="stand-btn" disabled>スタンド</button>
+        </div>
+
+        <p id="message"></p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjbkAe_543CBpOMeyaWq0Tgq1O_i4-FYc",
+            authDomain: "card-game-b3064.firebaseapp.com",
+            databaseURL: "https://card-game-b3064-default-rtdb.firebaseio.com",
+            projectId: "card-game-b3064",
+            storageBucket: "card-game-b3064.firebasestorage.app",
+            messagingSenderId: "1062461980171",
+            appId: "1:1062461980171:web:654970486e48834ca0110e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        import('./script.js').then(module => {
+            module.init(db, ref, set, onValue);
+        });
+    </script>
 </body>
 </html>

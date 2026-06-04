@@ -1,0 +1,88 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #076324;
+    color: white;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+#game {
+    text-align: center;
+    width: 600px;
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+}
+
+#dealer-area, #player-area {
+    background-color: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+#dealer-cards, #player-cards {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 120px;
+    margin: 10px 0;
+}
+
+.card {
+    background: white;
+    color: black;
+    width: 70px;
+    height: 100px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.card.red {
+    color: red;
+}
+
+#controls {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+button {
+    padding: 12px 30px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: #f0c040;
+    color: black;
+    font-weight: bold;
+}
+
+button:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+}
+
+#message {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 20px;
+    min-height: 40px;
+}
