@@ -7,6 +7,9 @@ let dealerHand = [];
 let gameMode = 'solo';
 let dbRef, dbSet, dbOnValue, dbInstance;
 
+// 効果音の実装は sound.js に移動しました
+// playCardSound / playHitSound / playStandSound は sound.js が提供します
+
 export function init(db, ref, set, onValue, mode) {
     gameMode = mode;
     dbInstance = db;
@@ -84,36 +87,100 @@ function startGame() {
 }
 
 function hit() {
+    playHitSound();
     playerHand.push(deck.pop());
-    renderHands(true);
+    renderHands(true, playerHand.length - 1);
+    setTimeout(() => playCardSound(), 200);
 
     if (getHandScore(playerHand) > 21) {
-        endGame('バスト！あなたの負けです😢');
+        setTimeout(() => endGame('バスト！あなたの負けです😢'), 400);
     } else if (gameMode === 'multi') {
         saveState(true);
     }
 }
 
 function stand() {
-    while (getHandScore(dealerHand) < 17) {
-        dealerHand.push(deck.pop());
-    }
-    renderHands(false);
+    playStandSound();
 
-    const playerScore = getHandScore(playerHand);
-    const dealerScore = getHandScore(dealerHand);
-    let message = '';
+    // ディーラーの全カードを順番にめくる
+    function revealDealerCards(callback) {
+        const dealerCards = document.getElementById('dealer-cards');
+        const cards = dealerCards.children;
+        let index = 0;
 
-    if (dealerScore > 21) {
-        message = 'ディーラーがバスト！あなたの勝ちです🎉';
-    } else if (playerScore > dealerScore) {
-        message = 'あなたの勝ちです🎉';
-    } else if (playerScore < dealerScore) {
-        message = 'ディーラーの勝ちです😢';
-    } else {
-        message = '引き分けです🤝';
+        function revealNext() {
+            if (index >= cards.length) {
+                callback();
+                return;
+            }
+
+            const cardEl = cards[index];
+            const card = dealerHand[index];
+
+            // 裏向きのカードだけめくる
+            if (cardEl.textContent === '🂠') {
+                setTimeout(() => {
+                    cardEl.classList.add('card-flip');
+
+                    // アニメーション中間でカードの中身を変える
+                    setTimeout(() => {
+                        const isRed = card.suit === '♥' || card.suit === '♦';
+                        cardEl.textContent = card.value + card.suit;
+                        if (isRed) cardEl.classList.add('red');
+                        playCardSound();
+                    }, 300);
+
+                    index++;
+                    setTimeout(revealNext, 700);
+                }, 100);
+            } else {
+                index++;
+                revealNext();
+            }
+        }
+
+        revealNext();
     }
-    endGame(message);
+
+    revealDealerCards(() => {
+        // めくり終わったらディーラーが追加でカードを引く
+        function dealerDrawNext() {
+            if (getHandScore(dealerHand) < 17) {
+                dealerHand.push(deck.pop());
+
+                const dealerCards = document.getElementById('dealer-cards');
+                const cardEl = renderCard(dealerHand[dealerHand.length - 1]);
+                cardEl.classList.add('card-flip');
+                dealerCards.appendChild(cardEl);
+                playCardSound();
+
+                setTimeout(dealerDrawNext, 1000);
+            } else {
+                // 全部終わったら結果表示
+                setTimeout(() => {
+                    const dealerScoreEl = document.getElementById('dealer-score');
+                    dealerScoreEl.textContent = 'スコア: ' + getHandScore(dealerHand);
+
+                    const playerScore = getHandScore(playerHand);
+                    const dealerScore = getHandScore(dealerHand);
+                    let message = '';
+
+                    if (dealerScore > 21) {
+                        message = 'ディーラーがバスト！あなたの勝ちです🎉';
+                    } else if (playerScore > dealerScore) {
+                        message = 'あなたの勝ちです🎉';
+                    } else if (playerScore < dealerScore) {
+                        message = 'ディーラーの勝ちです😢';
+                    } else {
+                        message = '引き分けです🤝';
+                    }
+                    endGame(message);
+                }, 300);
+            }
+        }
+
+        dealerDrawNext();
+    });
 }
 
 function endGame(message) {
@@ -160,7 +227,7 @@ function renderCard(card, hidden = false) {
     return div;
 }
 
-function renderHands(hideDealer = true) {
+function renderHands(hideDealer = true, newCardIndex = -1) {
     const dealerCards = document.getElementById('dealer-cards');
     const playerCards = document.getElementById('player-cards');
     const dealerScore = document.getElementById('dealer-score');
@@ -170,10 +237,32 @@ function renderHands(hideDealer = true) {
     playerCards.innerHTML = '';
 
     dealerHand.forEach((card, i) => {
-        dealerCards.appendChild(renderCard(card, hideDealer && i === 0));
+        const cardEl = renderCard(card, hideDealer && i === 0);
+        cardEl.style.animation = 'none';
+        dealerCards.appendChild(cardEl);
     });
-    playerHand.forEach(card => {
-        playerCards.appendChild(renderCard(card));
+
+    playerHand.forEach((card, i) => {
+        const cardEl = renderCard(card);
+
+        if (newCardIndex === -1) {
+            // 最初に配る時：1枚ずつ順番にアニメーション＆音
+            cardEl.style.opacity = '0';
+            cardEl.style.animation = 'none';
+            const delay = i * 350;
+            setTimeout(() => {
+                cardEl.style.opacity = '1';
+                cardEl.style.animation = 'dealCard 0.3s ease-out';
+                playCardSound();
+            }, delay);
+        } else if (i === newCardIndex) {
+            // ヒット時：新しい1枚だけ
+            cardEl.style.animation = 'dealCard 0.3s ease-out';
+        } else {
+            cardEl.style.animation = 'none';
+        }
+
+        playerCards.appendChild(cardEl);
     });
 
     if (hideDealer) {

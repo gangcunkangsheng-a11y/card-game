@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ゴッドトランプ</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Serif+JP:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background-color: #076324;
+    background-image:
+      radial-gradient(circle at 50% 50%, transparent 30%, rgba(0,0,0,0.4) 70%),
+      repeating-conic-gradient(rgba(0,0,0,0.1) 0deg, transparent 1deg, transparent 9deg, rgba(0,0,0,0.1) 10deg);
+    background-size: cover, 200px 200px;
+    color: #fff;
+    font-family: 'Cinzel', 'Noto Serif JP', serif;
+    text-align: center;
+    min-height: 100vh;
+    padding: 20px 12px;
+  }
+
+  h1 {
+    margin-bottom: 8px;
+    font-size: 2.4rem;
+    color: #FFD700;
+    text-shadow: 0 0 25px rgba(255,215,0,0.6), 0 2px 4px rgba(0,0,0,0.8);
+    letter-spacing: 6px;
+    font-weight: 700;
+  }
+
+  #game-subtitle {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.85rem;
+    letter-spacing: 4px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  #back-to-menu {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.5);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+    font-family: 'Georgia', serif;
+  }
+  #back-to-menu:hover { border-color: #FFD700; color: #FFD700; }
+
+  .menu-bar {
+    background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.3) 100%);
+    border: 1px solid rgba(255,215,0,0.4);
+    border-radius: 12px;
+    margin: 0 auto 20px;
+    max-width: 400px;
+    padding: 14px;
+    position: relative;
+  }
+
+  .menu-bar::before,
+  .menu-bar::after {
+    content: '♠ ♥ ♦ ♣';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,215,0,0.25);
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+  }
+  .menu-bar::before { left: 15px; }
+  .menu-bar::after { right: 15px; }
+
+  #current-game {
+    color: #FFD700;
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: 3px;
+  }
+
+  .game-controls {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,215,0,0.2);
+    padding: 15px;
+    border-radius: 12px;
+    margin: 0 auto 20px;
+    max-width: 700px;
+    min-height: 40px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .game-controls.active { display: flex; }
+
+  .game-btn {
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    background: #f0c040;
+    color: #1a1a1a;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    font-family: 'Georgia', serif;
+  }
+  .game-btn:hover { background: #FFD700; transform: translateY(-2px); }
+  .game-btn:disabled { background: #555; color: #999; cursor: not-allowed; transform: none; }
+
+  .status-board {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #FFD700;
+    margin-bottom: 20px;
+    min-height: 30px;
+  }
+
+  #table-wrap {
+    width: 100%;
+    max-width: 784px;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+
+  .table {
+    position: relative;
+    width: 760px;
+    height: 480px;
+    background: radial-gradient(ellipse at center, #0a7a2e 0%, #054d1a 100%);
+    border: 12px solid #4a2c17;
+    border-radius: 24px 24px 180px 180px / 24px 24px 90px 90px;
+    perspective: 1000px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.7), inset 0 0 60px rgba(0,0,0,0.3);
+    transform-origin: top left;
+  }
+
+  .felt {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .felt-main {
+    font-family: 'Cinzel', serif;
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    fill: #e2c15c;
+  }
+  .felt-sub {
+    font-family: 'Cinzel', serif;
+    font-size: 15px;
+    letter-spacing: 2px;
+    fill: rgba(255,255,255,0.72);
+  }
+  .felt-brand {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 6px;
+    fill: rgba(255,255,255,0.35);
+  }
+  .spot-outer { fill: none; stroke: rgba(255,255,255,0.45); stroke-width: 2; }
+  .spot-inner { fill: none; stroke: rgba(226,193,92,0.5); stroke-width: 1.5; stroke-dasharray: 5 6; }
+  .rail { fill: none; stroke: rgba(255,255,255,0.28); stroke-width: 2; }
+
+  .deck {
+    position: absolute; top: 34px; left: 34px; width: 85px; height: 120px;
+    background: linear-gradient(135deg, #8b0000 0%, #c0392b 100%);
+    border: 2px solid #FFD700; border-radius: 8px;
+    box-shadow: 3px 3px 8px rgba(0,0,0,0.5);
+    z-index: 2;
+  }
+
+  .card-container {
+    position: absolute; top: 34px; left: 34px; width: 85px; height: 120px;
+    transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1); z-index: 10;
+  }
+  .card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s ease-out; }
+  .card.is-flipped { transform: rotateY(180deg); }
+  .card-face {
+    position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+    border-radius: 8px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 22px; font-weight: bold; box-sizing: border-box;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+  }
+  .card-back {
+    background: linear-gradient(135deg, #8b0000 0%, #c0392b 100%);
+    color: #FFD700; border: 2px solid #FFD700;
+  }
+  .card-front {
+    background: #fdfdfd; color: #1a1a1a;
+    border: 2px solid #ccc; transform: rotateY(180deg);
+  }
+
+  .card-container.poker-selected { transform: translateY(-30px); z-index: 40; }
+  .card-container.poker-selected .card-face { box-shadow: 0 8px 20px rgba(255,215,0,0.6); }
+  .card-label {
+    position: absolute; bottom: -24px; left: 0; width: 100%;
+    text-align: center; font-size: 11px; color: rgba(255,255,255,0.5);
+  }
+  .card-container.poker-selected .card-label { color: #FFD700; }
+</style>
+</head>
+<body>
+
+<button id="back-to-menu" onclick="window.location.href='index.html'">← メニューに戻る</button>
+
+<h1>CASINO ROYALE</h1>
+<div id="game-subtitle">Card Game Collection</div>
+
+<div class="menu-bar">
+  <span id="current-game">ブラックジャック</span>
+</div>
+
+<div class="status-board" id="status-text">上のメニューからゲームを選んでください</div>
+
+<div class="game-controls" id="ctrl-blackjack">
+  <button class="game-btn" id="bj-start" onclick="bj_start()">ゲーム開始</button>
+  <button class="game-btn" id="bj-hit" onclick="bj_hit()" disabled>カードを引く (Hit)</button>
+  <button class="game-btn" id="bj-stand" onclick="bj_stand()" disabled>勝負する (Stand)</button>
+</div>
+
+<div class="game-controls" id="ctrl-poker">
+  <button class="game-btn" id="pk-start" onclick="pk_start()">ゲーム開始</button>
+  <button class="game-btn" id="pk-change" onclick="pk_change()" disabled>選んだカードを交換する</button>
+</div>
+
+<div class="game-controls" id="ctrl-daifugo">
+  <button class="game-btn" onclick="df_play()">手札から場にカードを出すモーション</button>
+  <button class="game-btn" style="background:#e74c3c;" onclick="clearTable()">場を流す(クリア)</button>
+</div>
+
+<div id="table-wrap">
+  <div class="table" id="gameTable">
+
+    <svg class="felt" viewBox="0 0 760 480" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <path id="arc-main" d="M 76 128 Q 380 336 684 128" fill="none"></path>
+        <path id="arc-sub" d="M 112 182 Q 380 368 648 182" fill="none"></path>
+      </defs>
+
+      <path class="rail" d="M 40 96 Q 380 330 720 96"></path>
+
+      <text class="felt-main">
+        <textPath href="#arc-main" startOffset="50%" text-anchor="middle">BLACKJACK PAYS 3 TO 2</textPath>
+      </text>
+
+      <text class="felt-sub">
+        <textPath href="#arc-sub" startOffset="50%" text-anchor="middle">DEALER STANDS ON 17 · INSURANCE PAYS 2 TO 1</textPath>
+      </text>
+
+      <g>
+        <circle class="spot-outer" cx="138" cy="326" r="38"></circle>
+        <circle class="spot-inner" cx="138" cy="326" r="30"></circle>
+        <circle class="spot-outer" cx="259" cy="372" r="38"></circle>
+        <circle class="spot-inner" cx="259" cy="372" r="30"></circle>
+        <circle class="spot-outer" cx="380" cy="390" r="38"></circle>
+        <circle class="spot-inner" cx="380" cy="390" r="30"></circle>
+        <circle class="spot-outer" cx="501" cy="372" r="38"></circle>
+        <circle class="spot-inner" cx="501" cy="372" r="30"></circle>
+        <circle class="spot-outer" cx="622" cy="326" r="38"></circle>
+        <circle class="spot-inner" cx="622" cy="326" r="30"></circle>
+      </g>
+
+      <text class="felt-brand" x="380" y="456" text-anchor="middle">GOD TRUMP</text>
+    </svg>
+
+    <div class="deck"></div>
+  </div>
+</div>
+
+<script src="sound.js"></script>
+
+<script>
+const table = document.getElementById('gameTable');
+const tableWrap = document.getElementById('table-wrap');
+let currentMode = '';
+let globalDeck = [];
+
+// カードの重なり幅（小さいほど密に重なる）
+const OVERLAP = 26;
+const POKER_GAP = 56;
+
+// 画面幅に合わせてテーブル全体を縮小する
+function fitTable() {
+  const scale = Math.min(1, tableWrap.clientWidth / 784);
+  table.style.transform = 'scale(' + scale + ')';
+  tableWrap.style.height = (504 * scale) + 'px';
+}
+window.addEventListener('resize', fitTable);
+
+function switchGame(mode) {
+  currentMode = mode;
+  clearTable();
+
+  document.querySelectorAll('.game-controls').forEach(c => c.classList.remove('active'));
+
+  if (mode === 'blackjack') {
+    document.getElementById('ctrl-blackjack').classList.add('active');
+    document.getElementById('status-text').innerText = '「ゲーム開始」を押してください';
+    document.getElementById('bj-start').disabled = false;
+    document.getElementById('bj-hit').disabled = true;
+    document.getElementById('bj-stand').disabled = true;
+  } else if (mode === 'poker') {
+    document.getElementById('ctrl-poker').classList.add('active');
+    document.getElementById('status-text').innerText = '「ゲーム開始」を押してください';
+    document.getElementById('pk-start').disabled = false;
+    document.getElementById('pk-change').disabled = true;
+  } else if (mode === 'daifugo') {
+    document.getElementById('ctrl-daifugo').classList.add('active');
+    document.getElementById('status-text').innerText = 'ボタンを押して出すモーションをテスト';
+  }
+}
+
+function clearTable() {
+  table.querySelectorAll('.card-container').forEach(c => c.remove());
+}
+
+function initDeck(aceValueMax = 11) {
+  const suits = ['♠', '♥', '♦', '♣'];
+  const values = [
+    { name: 'A', value: aceValueMax }, { name: '2', value: 2 }, { name: '3', value: 3 },
+    { name: '4', value: 4 }, { name: '5', value: 5 }, { name: '6', value: 6 },
+    { name: '7', value: 7 }, { name: '8', value: 8 }, { name: '9', value: 9 },
+    { name: '10', value: 10 }, { name: 'J', value: 10 }, { name: 'Q', value: 10 }, { name: 'K', value: 10 }
+  ];
+  if (currentMode === 'poker') values[0].value = 14;
+
+  globalDeck = [];
+  for (let suit of suits) {
+    for (let val of values) {
+      globalDeck.push({ suit: suit, name: val.name, value: val.value });
+    }
+  }
+  for (let i = globalDeck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [globalDeck[i], globalDeck[j]] = [globalDeck[j], globalDeck[i]];
+  }
+}
+
+// 重ねる枚数から左端の位置を求めて中央に寄せる
+function fanLeft(index, total, gap) {
+  const width = 85 + (total - 1) * gap;
+  const start = (760 - width) / 2;
+  return (start + index * gap) + 'px';
+}
+
+let stackOrder = 0;
+
+function spawnCardVisual(cardData, tTop, tLeft, isHidden = false, showLabel = '') {
+  const container = document.createElement('div');
+  container.className = 'card-container';
+  container.style.zIndex = 10 + (stackOrder++);
+
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const back = document.createElement('div');
+  back.className = 'card-face card-back';
+  back.innerHTML = '◆';
+
+  const front = document.createElement('div');
+  front.className = 'card-face card-front';
+  front.innerHTML = cardData.suit + '<br>' + cardData.name;
+  if (cardData.suit === '♥' || cardData.suit === '♦') front.style.color = 'red';
+
+  card.appendChild(back);
+  card.appendChild(front);
+  container.appendChild(card);
+
+  if (showLabel) {
+    const lbl = document.createElement('div');
+    lbl.className = 'card-label';
+    lbl.innerText = showLabel;
+    container.appendChild(lbl);
+  }
+
+  table.appendChild(container);
+  playCardSound();
+
+  setTimeout(() => {
+    container.style.top = tTop;
+    container.style.left = tLeft;
+  }, 50);
+
+  if (!isHidden) {
+    setTimeout(() => { card.classList.add('is-flipped'); }, 500);
+  }
+  return { container, card };
+}
+
+// ===== ブラックジャック =====
+let bj_pHand = [], bj_dHand = [];
+let bj_dCards = [], bj_pCards = [];
+let bj_dFirstCard = null;
+
+function bj_calc(hand) {
+  let score = 0, aces = 0;
+  for (let c of hand) { score += c.value; if (c.name === 'A') aces++; }
+  while (score > 21 && aces > 0) { score -= 10; aces--; }
+  return score;
+}
+
+// 重なり位置を配り直す（枚数が増えても中央に収まる）
+function bj_relayout() {
+  bj_pCards.forEach((res, i) => {
+    res.container.style.top = '300px';
+    res.container.style.left = fanLeft(i, bj_pCards.length, OVERLAP);
+  });
+  bj_dCards.forEach((res, i) => {
+    res.container.style.top = '60px';
+    res.container.style.left = fanLeft(i, bj_dCards.length, OVERLAP);
+  });
+}
+
+function bj_start() {
+  clearTable();
+  bj_pHand = []; bj_dHand = [];
+  bj_pCards = []; bj_dCards = [];
+
+  initDeck(11);
+  document.getElementById('bj-start').disabled = true;
+
+  setTimeout(() => {
+    bj_pHand.push(globalDeck.pop());
+    bj_pCards.push(spawnCardVisual(bj_pHand[0], '300px', '338px'));
+    bj_relayout(); bj_ui();
+  }, 0);
+
+  setTimeout(() => {
+    bj_dHand.push(globalDeck.pop());
+    const res = spawnCardVisual(bj_dHand[0], '60px', '338px', true);
+    bj_dCards.push(res);
+    bj_dFirstCard = res.card;
+    bj_relayout();
+  }, 200);
+
+  setTimeout(() => {
+    bj_pHand.push(globalDeck.pop());
+    bj_pCards.push(spawnCardVisual(bj_pHand[1], '300px', '338px'));
+    bj_relayout(); bj_ui();
+  }, 400);
+
+  setTimeout(() => {
+    bj_dHand.push(globalDeck.pop());
+    bj_dCards.push(spawnCardVisual(bj_dHand[1], '60px', '338px'));
+    bj_relayout();
+    document.getElementById('bj-hit').disabled = false;
+    document.getElementById('bj-stand').disabled = false;
+  }, 600);
+}
+
+function bj_ui() {
+  document.getElementById('status-text').innerText = `BJ - あなたの現在のスコア: ${bj_calc(bj_pHand)} (ディーラーは1枚伏せ)`;
+}
+
+function bj_hit() {
+  playHitSound();
+  const cData = globalDeck.pop();
+  bj_pHand.push(cData);
+  bj_pCards.push(spawnCardVisual(cData, '300px', '338px'));
+  bj_relayout();
+  bj_ui();
+  if (bj_calc(bj_pHand) > 21) { bj_end('バーストしました！あなたの負けです。'); }
+}
+
+function bj_stand() {
+  playStandSound();
+  document.getElementById('bj-hit').disabled = true;
+  document.getElementById('bj-stand').disabled = true;
+  bj_dFirstCard.classList.add('is-flipped');
+
+  function dTurn() {
+    let dScore = bj_calc(bj_dHand);
+    if (dScore < 17) {
+      const cData = globalDeck.pop();
+      bj_dHand.push(cData);
+      bj_dCards.push(spawnCardVisual(cData, '60px', '338px'));
+      bj_relayout();
+      setTimeout(dTurn, 600);
+    } else {
+      let pScore = bj_calc(bj_pHand);
+      if (dScore > 21) bj_end(`ディーラーバースト(${dScore})！あなたの勝ち！`);
+      else if (pScore > dScore) bj_end(`あなた${pScore} vs ディーラー${dScore} → あなたの勝ち！`);
+      else if (pScore < dScore) bj_end(`あなた${pScore} vs ディーラー${dScore} → あなたの負け`);
+      else bj_end(`あなた${pScore} vs ディーラー${dScore} → 引き分け`);
+    }
+  }
+  setTimeout(dTurn, 800);
+}
+
+function bj_end(msg) {
+  document.getElementById('status-text').innerText = msg;
+  document.getElementById('bj-hit').disabled = true;
+  document.getElementById('bj-stand').disabled = true;
+  document.getElementById('bj-start').disabled = false;
+}
+
+// ===== ポーカー =====
+let pk_hand = [];
+let pk_cardEls = [];
+let pk_selected = [];
+let pk_changed = false;
+
+function pk_start() {
+  clearTable();
+  initDeck(11);
+  pk_hand = []; pk_cardEls = []; pk_selected = []; pk_changed = false;
+
+  document.getElementById('pk-start').disabled = true;
+  document.getElementById('status-text').innerText = 'ポーカー: 交換したいカードをタップで選択';
+
+  for (let i = 0; i < 5; i++) {
+    setTimeout(() => {
+      const cData = globalDeck.pop();
+      pk_hand.push(cData);
+      const res = spawnCardVisual(cData, '300px', fanLeft(i, 5, POKER_GAP), false, 'タップで選択');
+      pk_cardEls.push(res);
+
+      const idx = i;
+      res.container.onclick = () => pk_toggle(idx);
+
+      if (i === 4) {
+        document.getElementById('pk-change').disabled = false;
+      }
+    }, i * 200);
+  }
+}
+
+function pk_toggle(idx) {
+  if (pk_changed) return;
+  const el = pk_cardEls[idx].container;
+  if (pk_selected.includes(idx)) {
+    pk_selected = pk_selected.filter(i => i !== idx);
+    el.classList.remove('poker-selected');
+  } else {
+    pk_selected.push(idx);
+    el.classList.add('poker-selected');
+  }
+}
+
+function pk_change() {
+  if (pk_changed) return;
+  pk_changed = true;
+  playStandSound();
+  document.getElementById('pk-change').disabled = true;
+
+  pk_selected.forEach((idx, n) => {
+    setTimeout(() => {
+      const oldEl = pk_cardEls[idx].container;
+      oldEl.remove();
+
+      const cData = globalDeck.pop();
+      pk_hand[idx] = cData;
+      const res = spawnCardVisual(cData, '300px', fanLeft(idx, 5, POKER_GAP));
+      pk_cardEls[idx] = res;
+
+      if (n === pk_selected.length - 1) {
+        setTimeout(pk_judge, 800);
+      }
+    }, n * 250);
+  });
+
+  if (pk_selected.length === 0) {
+    setTimeout(pk_judge, 300);
+  }
+}
+
+function pk_judge() {
+  const result = pk_evaluate(pk_hand);
+  document.getElementById('status-text').innerText = `役: ${result}`;
+  document.getElementById('pk-start').disabled = false;
+}
+
+function pk_evaluate(hand) {
+  const order = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+  const nums = hand.map(c => order.indexOf(c.name)).sort((a,b) => a-b);
+  const suits = hand.map(c => c.suit);
+
+  const counts = {};
+  nums.forEach(n => counts[n] = (counts[n] || 0) + 1);
+  const countVals = Object.values(counts).sort((a,b) => b-a);
+
+  const isFlush = suits.every(s => s === suits[0]);
+  const isStraight = nums.every((n, i) => i === 0 || n === nums[i-1] + 1);
+
+  if (isFlush && isStraight && nums[0] === 8) return 'ロイヤルストレートフラッシュ！';
+  if (isFlush && isStraight) return 'ストレートフラッシュ！';
+  if (countVals[0] === 4) return 'フォーカード！';
+  if (countVals[0] === 3 && countVals[1] === 2) return 'フルハウス！';
+  if (isFlush) return 'フラッシュ！';
+  if (isStraight) return 'ストレート！';
+  if (countVals[0] === 3) return 'スリーカード';
+  if (countVals[0] === 2 && countVals[1] === 2) return 'ツーペア';
+  if (countVals[0] === 2) return 'ワンペア';
+  return 'ノーペア（役なし）';
+}
+
+// ===== 大富豪サンプル =====
+let df_count = 0;
+
+function df_play() {
+  if (globalDeck.length === 0) initDeck(11);
+  const cData = globalDeck.pop();
+  const offsetX = 338 + (df_count % 6) * 12;
+  const offsetY = 300 + (df_count % 6) * 6;
+  spawnCardVisual(cData, offsetY + 'px', offsetX + 'px');
+  df_count++;
+  document.getElementById('status-text').innerText = `大富豪: ${df_count}枚目を場に出しました`;
+}
+
+// ===== URLパラメータから自動でゲーム開始 =====
+const urlParams = new URLSearchParams(window.location.search);
+const selectedGame = urlParams.get('game') || 'blackjack';
+const selectedMode = urlParams.get('mode') || 'solo';
+
+const gameNames = {
+  blackjack: 'ブラックジャック',
+  poker: 'ポーカー',
+  daifugo: '大富豪'
+};
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('current-game').innerText = gameNames[selectedGame] || 'ブラックジャック';
+  fitTable();
+  switchGame(selectedGame);
+});
+</script>
+</body>
+</html>

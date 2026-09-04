@@ -3,65 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ブラックジャック</title>
-    <link rel="stylesheet" href="style.css">
+    <title>カジノゲーム</title>
+    <link rel="stylesheet" href="menu.css">
 </head>
 <body>
-    <div id="game">
-        <div id="top-bar">
-            <button id="menu-btn" onclick="window.location.href='menu.html'">← メニューに戻る</button>
-            <span id="mode-label"></span>
+    <div id="menu-container">
+        <div id="header">
+            <h1>🎰 カジノゲーム 🎰</h1>
+            <p>ゲームを選んでください</p>
         </div>
 
-        <h1>ブラックジャック</h1>
+        <div id="game-list">
+            <div class="game-card" onclick="selectGame('blackjack')">
+                <div class="game-icon">🃏</div>
+                <h2>ブラックジャック</h2>
+                <p>ディーラーに勝て！21を目指せ</p>
+            </div>
 
-        <div id="dealer-area">
-            <h2>ディーラー</h2>
-            <div id="dealer-cards"></div>
-            <p id="dealer-score"></p>
+            <div class="game-card" onclick="selectGame('poker')">
+                <div class="game-icon">♠️</div>
+                <h2>ポーカー</h2>
+                <p>5枚を交換して役を作れ</p>
+            </div>
+
+            <div class="game-card" onclick="selectGame('daifugo')">
+                <div class="game-icon">🎲</div>
+                <h2>大富豪</h2>
+                <p>場にカードを出していけ</p>
+            </div>
         </div>
-
-        <div id="player-area">
-            <h2>あなた</h2>
-            <div id="player-cards"></div>
-            <p id="player-score"></p>
-        </div>
-
-        <div id="controls">
-            <button id="deal-btn">ゲームスタート</button>
-            <button id="hit-btn" disabled>ヒット</button>
-            <button id="stand-btn" disabled>スタンド</button>
-        </div>
-
-        <p id="message"></p>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+    <div id="mode-modal" class="hidden">
+        <div id="modal-content">
+            <h2 id="modal-title">モードを選択</h2>
+            <div id="mode-buttons">
+                <button onclick="startGame('solo')">
+                    👤 ソロプレイ
+                    <span>一人で遊ぶ</span>
+                </button>
+                <button onclick="startGame('multi')">
+                    👥 マルチプレイ
+                    <span>友達と遊ぶ</span>
+                </button>
+            </div>
+            <button id="back-btn" onclick="closeModal()">戻る</button>
+        </div>
+    </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDjbkAe_543CBpOMeyaWq0Tgq1O_i4-FYc",
-            authDomain: "card-game-b3064.firebaseapp.com",
-            databaseURL: "https://card-game-b3064-default-rtdb.firebaseio.com",
-            projectId: "card-game-b3064",
-            storageBucket: "card-game-b3064.firebasestorage.app",
-            messagingSenderId: "1062461980171",
-            appId: "1:1062461980171:web:654970486e48834ca0110e"
-        };
+    <script>
+        let selectedGame = '';
 
-        const params = new URLSearchParams(window.location.search);
-        const mode = params.get('mode') || 'solo';
+        function selectGame(game) {
+            selectedGame = game;
 
-        document.getElementById('mode-label').textContent = 
-            mode === 'solo' ? '👤 ソロプレイ' : '👥 マルチプレイ';
+            // ブラックジャックだけソロ / マルチを選べる
+            if (game === 'blackjack') {
+                document.getElementById('mode-modal').classList.remove('hidden');
+            } else {
+                window.location.href = `casino.html?game=${game}`;
+            }
+        }
 
-        if (mode === 'multi') {
-            const app = initializeApp(firebaseConfig);
-            const db = getDatabase(app);
-            import('./script.js').then(m => m.init(db, ref, set, onValue, mode));
-        } else {
-            import('./script.js').then(m => m.init(null, null, null, null, mode));
+        function closeModal() {
+            document.getElementById('mode-modal').classList.add('hidden');
+        }
+
+        function startGame(mode) {
+            window.location.href = `casino.html?game=${selectedGame}&mode=${mode}`;
         }
     </script>
 </body>
